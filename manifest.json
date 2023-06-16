@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Website Grammar Check",
+  "version": "1.0",
+  "description": "A Chrome extension to check grammar and spelling from a website",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {}
+  },
+  "icons": {},
+  "host_permissions": ["*://*/*"]
+}
