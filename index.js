@@ -23,18 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    const scrapeButton = document.getElementById('getHighlightedText');
-    scrapeButton.addEventListener('click', function() {
-        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-            chrome.scripting.executeScript({
-                target: { tabId: tabs[0].id },
-                function: grammarCheck
-            });
-        });
-    });
-});
-
-document.addEventListener('DOMContentLoaded', function() {
     const scrapeButton = document.getElementById('tldrSummarize');
     scrapeButton.addEventListener('click', function() {
         chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
@@ -46,6 +34,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    const scrapeButton = document.getElementById('getHighlightedText');
+    scrapeButton.addEventListener('click', function() {
+        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+            chrome.scripting.executeScript({
+                target: { tabId: tabs[0].id },
+                function: explainHighlightedText
+            });
+        });
+    });
+});
 
 async function spellingCheck() {
     let textContent = scrapeText();
@@ -95,7 +94,7 @@ async function spellingCheck() {
                 textContent += trimmedText + '\n';
             }
         }
-        return textContent;
+        return textContent.replace(/\s+/g,' ').trim();
     }
 }
 
@@ -147,7 +146,7 @@ async function grammarCheck() {
                 textContent += trimmedText + '\n';
             }
         }
-        return textContent;
+        return textContent.replace(/\s+/g,' ').trim();
     }
 }
 
@@ -199,6 +198,41 @@ async function tldrSummarize() {
                 textContent += trimmedText + '\n';
             }
         }
-        return textContent;
+        return textContent.replace(/\s+/g,' ').trim();
+    }
+}
+
+function explainHighlightedText() {
+    const textContent = getSelection().toString().replace(/\s+/g,' ').trim();
+    console.log(textContent);
+    fetchData();
+    function fetchData() {
+        console.log("Fetching correct results for you...");
+        const apiKey = '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';
+        const apiUrl = 'https://api.openai.com/v1/completions';
+        fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: "text-davinci-003",
+                prompt: `Summarize this and explain in simple terms:\n\n${textContent}`,
+                temperature: 0,
+                max_tokens: 60,
+                top_p: 1.0,
+                frequency_penalty: 0.0,
+                presence_penalty: 0.0
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Process the spelling check results
+                console.log("Response: ", data.choices[0].text);
+            })
+            .catch(error => {
+                console.error('Error checking spelling:', error);
+            });
     }
 }
